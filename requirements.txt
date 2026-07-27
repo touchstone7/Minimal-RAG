@@ -2,3 +2,4 @@ chromadb
 ollama
 pypdf
 numpy
+requests
