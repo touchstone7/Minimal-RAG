@@ -42,3 +42,13 @@ def index_chunks(collection, chunks: list[EmbeddedChunk]):
         embeddings=embeddings,
         metadatas=metadatas
     )
+
+def show_collection_info(collection):
+
+    print(f"Collection contains {collection.count()} chunk(s)")
+
+def inspect_collection(collection):
+
+    result = collection.get()
+
+    print(result)
