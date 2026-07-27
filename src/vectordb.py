@@ -32,7 +32,7 @@ def index_chunks(collection, chunks: list[EmbeddedChunk]):
 
         metadatas.append(
             {
-                "document": chunk.document_name
+                "document": chunk.filename
             }
         )
 

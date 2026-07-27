@@ -2,12 +2,11 @@ from dataclasses import dataclass
 
 import ollama
 
-from chunking import Chunk
-
+from models import Chunk
 
 @dataclass
 class EmbeddedChunk:
-    document_name: str
+    filename: str
     text: str
     embedding: list[float]
 
@@ -40,7 +39,7 @@ def embed_chunks(
 
         embedded_chunks.append(
             EmbeddedChunk(
-                document_name=chunk.document_name,
+                filename=chunk.filename,
                 text=chunk.text,
                 embedding=embedding
             )

@@ -1,12 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
-
-
-@dataclass
-class Document:
-    filename: str
-    content: str
-
+from models import Document
 
 def load_documents(directory: str) -> list[Document]:
     """

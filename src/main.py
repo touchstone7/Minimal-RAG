@@ -1,5 +1,8 @@
 from documents import load_documents
-from chunking import chunk_documents
+from chunking import (
+    chunk_documents,
+    sentence_chunk_documents
+)
 from embeddings import embed_chunks
 from vectordb import (
     create_collection,
@@ -21,11 +24,28 @@ def main():
     # ----------------------------
     # Step 2: Chunk documents
     # ----------------------------
-    chunks = chunk_documents(
-        documents=documents,
-        chunk_size=50,
-        overlap=10,
+    # Character chunking
+    # chunks = chunk_documents(
+    #     documents,
+    #     chunk_size=50,
+    #     overlap=10,
+    # )
+
+    # Sentence chunking
+    chunks = sentence_chunk_documents(
+        documents,
+        sentences_per_chunk=2
     )
+
+    print(f"\nCreated {len(chunks)} chunks\n")
+
+    for i, chunk in enumerate(chunks):
+
+        print("=" * 60)
+        print(f"Chunk {i + 1}")
+        print(f"Document : {chunk.filename}")
+        print("-" * 60)
+        print(chunk.text)
 
     # ----------------------------
     # Step 3: Generate embeddings
