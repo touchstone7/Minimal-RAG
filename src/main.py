@@ -1,38 +1,21 @@
-"""
-Entry point of the application.
-
-Pipeline:
-
-Load documents
-
-↓
-
-Chunk
-
-↓
-
-Embed
-
-↓
-
-Store
-
-↓
-
-Ask Question
-
-↓
-
-Retrieve
-
-↓
-
-Generate Answer
-"""
+from documents import load_documents
 
 
 def main():
-    print("Minimal RAG Project")
+
+    documents = load_documents("data")
+
+    print(f"Loaded {len(documents)} document(s)\n")
+
+    for document in documents:
+
+        print(document.filename)
+
+        print("-" * 40)
+
+        print(document.content)
+
+        print()
 
 
 if __name__ == "__main__":

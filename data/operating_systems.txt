@@ -1,0 +1,7 @@
+An operating system manages hardware resources.
+
+It schedules CPU time.
+
+It manages memory.
+
+It provides an interface between hardware and applications.
