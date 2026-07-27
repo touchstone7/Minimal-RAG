@@ -1,0 +1,19 @@
+Object-oriented programming organizes software into objects.
+
+Classes define the structure of objects.
+
+Objects contain state and behavior.
+
+Encapsulation hides implementation details.
+
+Inheritance allows code reuse.
+
+Polymorphism enables multiple implementations.
+
+Abstraction hides unnecessary complexity.
+
+Constructors initialize new objects.
+
+Interfaces define contracts between classes.
+
+Composition is often preferred over inheritance.

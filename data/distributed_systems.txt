@@ -1,0 +1,19 @@
+Distributed systems consist of multiple computers working together.
+
+Replication improves fault tolerance.
+
+Partitioning distributes data across multiple machines.
+
+Consensus algorithms maintain consistency.
+
+CAP theorem describes trade-offs between consistency, availability and partition tolerance.
+
+Leader election selects a coordinator node.
+
+Distributed transactions are more complex than local transactions.
+
+Network latency affects system performance.
+
+Eventual consistency is common in distributed databases.
+
+Apache Kafka enables event streaming.

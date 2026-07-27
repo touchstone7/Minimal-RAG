@@ -1,0 +1,19 @@
+Linux is an open-source operating system.
+
+Everything in Linux is treated as a file.
+
+The terminal allows users to execute commands.
+
+Permissions determine who can read, write or execute files.
+
+The root directory is represented by a slash.
+
+The grep command searches text.
+
+The ls command lists directory contents.
+
+The cd command changes directories.
+
+Processes can be monitored using the ps command.
+
+Package managers install software.

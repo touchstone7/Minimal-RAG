@@ -1,0 +1,19 @@
+A database stores and organizes data efficiently.
+
+Relational databases store information in tables.
+
+Each table consists of rows and columns.
+
+Primary keys uniquely identify records.
+
+Foreign keys establish relationships between tables.
+
+Indexes improve query performance.
+
+Normalization reduces data redundancy.
+
+Transactions follow ACID properties.
+
+SQL is the standard language for relational databases.
+
+Examples include PostgreSQL, MySQL and Oracle.

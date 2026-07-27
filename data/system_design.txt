@@ -1,0 +1,19 @@
+System design focuses on building scalable applications.
+
+Load balancers distribute incoming traffic.
+
+Caching reduces database load.
+
+Horizontal scaling adds more machines.
+
+Vertical scaling upgrades existing hardware.
+
+Microservices split applications into smaller services.
+
+Message queues enable asynchronous communication.
+
+Databases should avoid single points of failure.
+
+Monitoring helps identify performance bottlenecks.
+
+High availability minimizes downtime.

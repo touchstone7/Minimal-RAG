@@ -1,0 +1,19 @@
+A process is a running instance of a program.
+
+Threads are lightweight execution units.
+
+Each process has its own memory space.
+
+Context switching allows multiple processes to share the CPU.
+
+Schedulers decide which process runs next.
+
+Deadlocks occur when processes wait indefinitely.
+
+Semaphores synchronize concurrent processes.
+
+Mutexes prevent race conditions.
+
+Inter-process communication allows processes to exchange information.
+
+Multithreading improves responsiveness.

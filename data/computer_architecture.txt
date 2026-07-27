@@ -1,0 +1,19 @@
+A CPU executes program instructions.
+
+Modern processors contain multiple cores.
+
+Registers provide the fastest storage inside a CPU.
+
+Cache memory reduces access time to RAM.
+
+RAM stores currently running programs.
+
+The ALU performs arithmetic and logical operations.
+
+The Control Unit coordinates instruction execution.
+
+Instruction pipelining improves CPU performance.
+
+Clock speed determines how many cycles occur per second.
+
+The motherboard connects all hardware components.

@@ -1,0 +1,19 @@
+Computer networks allow devices to communicate.
+
+The Internet is a collection of interconnected networks.
+
+TCP provides reliable communication.
+
+UDP provides faster but unreliable communication.
+
+IP addresses uniquely identify devices.
+
+DNS converts domain names into IP addresses.
+
+HTTP is used to transfer web pages.
+
+HTTPS encrypts communication using TLS.
+
+Routers forward packets between networks.
+
+Switches connect devices inside a local network.

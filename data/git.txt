@@ -1,0 +1,19 @@
+Git is a distributed version control system.
+
+Repositories store project history.
+
+Commits capture snapshots of a project.
+
+Branches allow parallel development.
+
+Git merge combines branches.
+
+Git rebase rewrites commit history.
+
+Remote repositories are hosted on platforms like GitHub.
+
+The git pull command fetches and merges changes.
+
+The git push command uploads commits.
+
+Conflicts occur when multiple changes modify the same code.

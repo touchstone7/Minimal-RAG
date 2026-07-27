@@ -1,7 +1,19 @@
-An operating system manages hardware resources.
+An operating system manages computer hardware and software resources.
 
-It schedules CPU time.
+It acts as an interface between applications and the underlying hardware.
 
-It manages memory.
+The operating system schedules CPU time among running processes.
 
-It provides an interface between hardware and applications.
+It manages memory allocation and deallocation.
+
+Virtual memory allows programs to use more memory than physically available.
+
+The operating system manages files and directories.
+
+It provides security through user accounts and permissions.
+
+Device drivers allow hardware devices to communicate with the operating system.
+
+Modern operating systems support multitasking.
+
+Examples include Windows, Linux and macOS.
