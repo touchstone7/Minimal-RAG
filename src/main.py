@@ -1,8 +1,6 @@
 from documents import load_documents
-from chunking import (
-    chunk_documents,
-    sentence_chunk_documents
-)
+from chunkers.character_chunker import chunk_documents
+from chunkers.sentence_chunker import sentence_chunk_documents
 from embeddings import embed_chunks
 from vectordb import (
     create_collection,
