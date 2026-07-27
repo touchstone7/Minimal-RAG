@@ -1,6 +1,7 @@
 from documents import load_documents
 from chunking import chunk_documents
 from embeddings import embed_chunks
+from vectordb import create_collection, index_chunks
 
 
 def main():
@@ -15,26 +16,11 @@ def main():
 
     embedded_chunks = embed_chunks(chunks)
 
-    print(f"Generated embeddings for {len(embedded_chunks)} chunk(s)\n")
+    collection = create_collection()
 
-    for index, chunk in enumerate(embedded_chunks, start=1):
+    index_chunks(collection, embedded_chunks)
 
-        print(f"Chunk {index}")
-        print(f"Document : {chunk.document_name}")
-
-        print("-" * 40)
-
-        print(chunk.text)
-
-        print()
-
-        print(f"Embedding Dimension : {len(chunk.embedding)}")
-
-        print("First 10 Values:")
-
-        print(chunk.embedding[:10])
-
-        print("\n" + "=" * 70 + "\n")
+    print(f"Stored {len(embedded_chunks)} chunks inside ChromaDB")
 
 
 if __name__ == "__main__":
