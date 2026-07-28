@@ -11,3 +11,10 @@ class Document:
 class Chunk:
     filename: str
     text: str
+
+
+@dataclass
+class EmbeddedChunk:
+    filename: str
+    text: str
+    embedding: list[float]

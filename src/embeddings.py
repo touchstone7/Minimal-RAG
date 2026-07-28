@@ -1,14 +1,7 @@
-from dataclasses import dataclass
 
 import ollama
 
-from models import Chunk
-
-@dataclass
-class EmbeddedChunk:
-    filename: str
-    text: str
-    embedding: list[float]
+from models import Chunk, EmbeddedChunk
 
 
 def embed_chunks(
