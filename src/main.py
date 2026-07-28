@@ -1,7 +1,6 @@
 from loaders.txt_loader import load_documents
 
-from chunkers.character_chunker import chunk_documents
-from chunkers.sentence_chunker import sentence_chunk_documents
+from chunkers.factory import get_chunker
 
 from embeddings import embed_chunks
 
@@ -18,11 +17,7 @@ from llm import ask_llm
 from config import (
     DATA_DIRECTORY,
     CHUNKING_METHOD,
-    CHUNK_SIZE,
-    OVERLAP,
-    SENTENCES_PER_CHUNK,
 )
-
 
 def main():
 
@@ -34,26 +29,9 @@ def main():
     # ----------------------------
     # Step 2: Chunk documents
     # ----------------------------
-    if CHUNKING_METHOD == "character":
+    chunker = get_chunker(CHUNKING_METHOD)
 
-        chunks = chunk_documents(
-            documents,
-            chunk_size=CHUNK_SIZE,
-            overlap=OVERLAP,
-        )
-
-    elif CHUNKING_METHOD == "sentence":
-
-        chunks = sentence_chunk_documents(
-            documents,
-            sentences_per_chunk=SENTENCES_PER_CHUNK,
-        )
-
-    else:
-        raise ValueError(
-            f"Unknown chunking method: {CHUNKING_METHOD}"
-        )
-
+    chunks = chunker.chunk(documents)
     print(f"\nCreated {len(chunks)} chunk(s)\n")
 
     for i, chunk in enumerate(chunks):
