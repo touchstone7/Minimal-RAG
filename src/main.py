@@ -1,15 +1,27 @@
-from documents import load_documents
+from loaders.txt_loader import load_documents
+
 from chunkers.character_chunker import chunk_documents
 from chunkers.sentence_chunker import sentence_chunk_documents
+
 from embeddings import embed_chunks
+
 from vectordb import (
     create_collection,
     index_chunks,
     show_collection_info,
 )
+
 from retriever import retrieve
 from prompt_builder import build_prompt
 from llm import ask_llm
+
+from config import (
+    DATA_DIRECTORY,
+    CHUNKING_METHOD,
+    CHUNK_SIZE,
+    OVERLAP,
+    SENTENCES_PER_CHUNK,
+)
 
 
 def main():
@@ -17,25 +29,32 @@ def main():
     # ----------------------------
     # Step 1: Load documents
     # ----------------------------
-    documents = load_documents("data")
+    documents = load_documents(DATA_DIRECTORY)
 
     # ----------------------------
     # Step 2: Chunk documents
     # ----------------------------
-    # Character chunking
-    # chunks = chunk_documents(
-    #     documents,
-    #     chunk_size=50,
-    #     overlap=10,
-    # )
+    if CHUNKING_METHOD == "character":
 
-    # Sentence chunking
-    chunks = sentence_chunk_documents(
-        documents,
-        sentences_per_chunk=2
-    )
+        chunks = chunk_documents(
+            documents,
+            chunk_size=CHUNK_SIZE,
+            overlap=OVERLAP,
+        )
 
-    print(f"\nCreated {len(chunks)} chunks\n")
+    elif CHUNKING_METHOD == "sentence":
+
+        chunks = sentence_chunk_documents(
+            documents,
+            sentences_per_chunk=SENTENCES_PER_CHUNK,
+        )
+
+    else:
+        raise ValueError(
+            f"Unknown chunking method: {CHUNKING_METHOD}"
+        )
+
+    print(f"\nCreated {len(chunks)} chunk(s)\n")
 
     for i, chunk in enumerate(chunks):
 
@@ -79,15 +98,14 @@ def main():
     )
 
     # ----------------------------
-    # Step 9: Build the prompt
+    # Step 9: Build prompt
     # ----------------------------
     prompt = build_prompt(
         question=question,
         retrieved_chunks=retrieved_chunks,
     )
 
-    # Uncomment this if you want to see exactly
-    # what is being sent to the LLM.
+    # Uncomment to inspect the prompt sent to the LLM
     #
     # print("\nGenerated Prompt\n")
     # print(prompt)
@@ -98,7 +116,7 @@ def main():
     answer = ask_llm(prompt)
 
     # ----------------------------
-    # Step 11: Display the answer
+    # Step 11: Display answer
     # ----------------------------
     print("\nAnswer")
     print("=" * 60)
