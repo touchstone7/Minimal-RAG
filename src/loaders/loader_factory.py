@@ -9,6 +9,10 @@ from loaders.pdf_loader import (
     load_pdf_documents
 )
 
+from loaders.docx_loader import (
+    load_docx_documents
+)
+
 def load_documents(
     directory: str
 ) -> list[Document]:
@@ -24,7 +28,10 @@ def load_documents(
     )
 
     documents.extend(
-    load_pdf_documents(directory)
+        load_pdf_documents(directory)
+    )
+    documents.extend(
+        load_docx_documents(directory)
     )
 
     return documents
