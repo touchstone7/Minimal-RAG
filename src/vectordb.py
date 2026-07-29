@@ -1,6 +1,6 @@
 import chromadb
 
-from embeddings import EmbeddedChunk
+from embeddings.embeddings_service import EmbeddedChunk
 
 
 def create_collection(name: str = "minimal-rag"):

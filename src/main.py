@@ -2,7 +2,7 @@ from loaders.loader_factory import load_documents
 
 from chunkers.chunker_factory import get_chunker
 
-from embeddings import embed_chunks
+from embeddings.embeddings_service import embed_chunks
 
 from vectordb import (
     create_collection,
