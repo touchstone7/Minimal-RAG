@@ -15,6 +15,7 @@ CHAT_MODEL = "qwen3:8b"
 
 # Vector DB
 COLLECTION_NAME = "documents"
+CHROMA_DB_PATH = "chroma_db"
 
 # Retrieval
 TOP_K = 3

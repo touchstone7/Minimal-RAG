@@ -1,18 +1,24 @@
 import chromadb
 
-from embeddings.embeddings_service import EmbeddedChunk
+from config import (
+    CHROMA_DB_PATH,
+    COLLECTION_NAME,
+)
+
+from models import EmbeddedChunk
 
 
-def create_collection(name: str = "minimal-rag"):
+def create_collection():
 
-    client = chromadb.Client()
+    client = chromadb.PersistentClient(
+        path=CHROMA_DB_PATH
+    )
 
-    try:
-        client.delete_collection(name)
-    except Exception:
-        pass
+    collection = client.get_or_create_collection(
+        name=COLLECTION_NAME
+    )
 
-    return client.create_collection(name)
+    return collection
 
 
 def index_chunks(collection, chunks: list[EmbeddedChunk]):
@@ -43,9 +49,11 @@ def index_chunks(collection, chunks: list[EmbeddedChunk]):
         metadatas=metadatas
     )
 
+
 def show_collection_info(collection):
 
     print(f"Collection contains {collection.count()} chunk(s)")
+
 
 def inspect_collection(collection):
 
