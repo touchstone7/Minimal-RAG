@@ -1,0 +1,35 @@
+from pathlib import Path
+
+from pypdf import PdfReader
+
+from models import Document
+
+
+def load_pdf_documents(
+    directory: str
+) -> list[Document]:
+
+    documents: list[Document] = []
+
+    data_path = Path(directory)
+
+    for file in data_path.glob("*.pdf"):
+
+        reader = PdfReader(file)
+
+        text = ""
+
+        for page in reader.pages:
+            extracted = page.extract_text()
+
+            if extracted:
+                text += extracted + "\n"
+
+        documents.append(
+            Document(
+                filename=file.name,
+                content=text
+            )
+        )
+
+    return documents

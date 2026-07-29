@@ -1,6 +1,6 @@
-from loaders.txt_loader import load_documents
+from loaders.loader_factory import load_documents
 
-from chunkers.factory import get_chunker
+from chunkers.chunkerFactory import get_chunker
 
 from embeddings import embed_chunks
 

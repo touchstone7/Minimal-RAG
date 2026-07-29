@@ -3,21 +3,15 @@ from pathlib import Path
 from models import Document
 
 
-def load_txt_documents(directory: str) -> list[Document]:
-    """
-    Load every .txt file inside a directory.
-    """
+def load_markdown_documents(
+    directory: str
+) -> list[Document]:
 
     documents: list[Document] = []
 
     data_path = Path(directory)
 
-    if not data_path.exists():
-        raise FileNotFoundError(
-            f"Directory '{directory}' does not exist."
-        )
-
-    for file in data_path.glob("*.txt"):
+    for file in data_path.glob("*.md"):
 
         documents.append(
             Document(
