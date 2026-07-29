@@ -12,7 +12,7 @@ from vectordb.chroma_service import (
 
 from retrieval.retriever import retrieve
 from retrieval.prompt_builder import build_prompt
-from llm import ask_llm
+from llm.ollama_service import ask_llm
 
 from config import (
     DATA_DIRECTORY,
