@@ -4,7 +4,7 @@ from chunkers.chunker_factory import get_chunker
 
 from embeddings.embeddings_service import embed_chunks
 
-from vectordb import (
+from vectordb.chroma_service import (
     create_collection,
     index_chunks,
     show_collection_info,
