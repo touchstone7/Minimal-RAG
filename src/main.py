@@ -10,8 +10,8 @@ from vectordb.chroma_service import (
     show_collection_info,
 )
 
-from retriever import retrieve
-from prompt_builder import build_prompt
+from retrieval.retriever import retrieve
+from retrieval.prompt_builder import build_prompt
 from llm import ask_llm
 
 from config import (
