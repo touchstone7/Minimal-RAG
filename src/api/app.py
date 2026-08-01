@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 
 from src.services.rag_service import RagService
+from src.api.schemas import QueryRequest, QueryResponse
 
 
 app = FastAPI(
@@ -24,3 +25,14 @@ def health():
 def ingest():
 
     return rag_service.ingest()
+
+
+@app.post("/query", response_model=QueryResponse)
+def query(request: QueryRequest):
+
+    answer = rag_service.query(request.question)
+
+    return QueryResponse(
+        question=request.question,
+        answer=answer
+    )
