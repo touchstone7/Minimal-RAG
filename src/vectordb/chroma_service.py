@@ -1,11 +1,11 @@
 import chromadb
 
-from config import (
+from src.config import (
     CHROMA_DB_PATH,
     COLLECTION_NAME,
 )
 
-from models import EmbeddedChunk
+from src.models import EmbeddedChunk
 
 
 def create_collection():

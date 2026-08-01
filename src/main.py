@@ -1,4 +1,4 @@
-from services.rag_service import RagService
+from src.services.rag_service import RagService
 
 
 def main():

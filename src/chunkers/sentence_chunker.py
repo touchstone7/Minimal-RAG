@@ -1,6 +1,6 @@
 import re
 
-from models import Chunk, Document
+from src.models import Chunk, Document
 
 def sentence_chunk_documents(documents, sentences_per_chunk=2):
 

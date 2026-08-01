@@ -1,7 +1,7 @@
 
 import ollama
 
-from models import Chunk, EmbeddedChunk
+from src.models import Chunk, EmbeddedChunk
 
 
 def embed_chunks(

@@ -1,11 +1,11 @@
-from config import (
+from src.config import (
     CHUNK_SIZE,
     OVERLAP,
     SENTENCES_PER_CHUNK,
 )
 
-from chunkers.character_chunker import chunk_documents
-from chunkers.sentence_chunker import sentence_chunk_documents
+from src.chunkers.character_chunker import chunk_documents
+from src.chunkers.sentence_chunker import sentence_chunk_documents
 
 
 class CharacterChunker:

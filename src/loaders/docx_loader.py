@@ -2,7 +2,7 @@ from pathlib import Path
 
 from docx import Document as DocxDocument
 
-from models import Document
+from src.models import Document
 
 
 def load_docx_documents(

@@ -1,9 +1,9 @@
-from models import Document
+from src.models import Document
 
-from loaders.txt_loader import load_txt_documents
-from loaders.markdown_loader import load_markdown_documents
-from loaders.pdf_loader import load_pdf_documents
-from loaders.docx_loader import load_docx_documents
+from src.loaders.txt_loader import load_txt_documents
+from src.loaders.markdown_loader import load_markdown_documents
+from src.loaders.pdf_loader import load_pdf_documents
+from src.loaders.docx_loader import load_docx_documents
 
 
 def load_documents(

@@ -1,20 +1,20 @@
-from config import *
+from src.config import *
 
-from loaders.loader_factory import load_documents
-from chunkers.chunker_factory import get_chunker
+from src.loaders.loader_factory import load_documents
+from src.chunkers.chunker_factory import get_chunker
 
-from embeddings.embeddings_service import embed_chunks
+from src.embeddings.embeddings_service import embed_chunks
 
-from vectordb.chroma_service import (
+from src.vectordb.chroma_service import (
     create_collection,
     index_chunks,
     show_collection_info,
 )
 
-from retrieval.retriever import retrieve
-from retrieval.prompt_builder import build_prompt
+from src.retrieval.retriever import retrieve
+from src.retrieval.prompt_builder import build_prompt
 
-from llm.ollama_service import ask_llm
+from src.llm.ollama_service import ask_llm
 
 
 class RagService:

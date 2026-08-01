@@ -2,7 +2,7 @@ from pathlib import Path
 
 from pypdf import PdfReader
 
-from models import Document
+from src.models import Document
 
 
 def load_pdf_documents(

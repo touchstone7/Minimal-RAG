@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from models import Document
+from src.models import Document
 
 
 def load_txt_documents(directory: str) -> list[Document]:

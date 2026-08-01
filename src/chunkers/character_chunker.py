@@ -1,4 +1,4 @@
-from models import Chunk, Document
+from src.models import Chunk, Document
 
 def chunk_documents(
     documents: list[Document],
