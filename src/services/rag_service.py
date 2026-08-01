@@ -31,27 +31,13 @@ class RagService:
 
     def ingest(self):
 
-        # ==========================================================
-        # INGESTION PIPELINE
-        #
-        # Converts raw documents into a searchable knowledge base.
-        #
-        # Documents
-        #      ↓
-        # Chunking
-        #      ↓
-        # Embeddings
-        #      ↓
-        # ChromaDB
-        # ==========================================================
-
         # ----------------------------
-        # Step 1: Load all documents
+        # Step 1: Load documents
         # ----------------------------
         documents = load_documents(DATA_DIRECTORY)
 
         # ----------------------------
-        # Step 2: Split documents into chunks
+        # Step 2: Chunk documents
         # ----------------------------
         chunker = get_chunker(CHUNKING_METHOD)
 
@@ -59,26 +45,18 @@ class RagService:
 
         print(f"\nCreated {len(chunks)} chunk(s)\n")
 
-        for i, chunk in enumerate(chunks):
-
-            print("=" * 60)
-            print(f"Chunk {i + 1}")
-            print(f"Document : {chunk.filename}")
-            print("-" * 60)
-            print(chunk.text)
-
         # ----------------------------
-        # Step 3: Convert chunks into vector embeddings
+        # Step 3: Generate embeddings
         # ----------------------------
         embedded_chunks = embed_chunks(chunks)
 
         # ----------------------------
-        # Step 4: Create/Open the vector database
+        # Step 4: Create Chroma collection
         # ----------------------------
         self.collection = create_collection()
 
         # ----------------------------
-        # Step 5: Store embeddings in ChromaDB
+        # Step 5: Store embeddings
         # ----------------------------
         index_chunks(
             self.collection,
@@ -86,10 +64,15 @@ class RagService:
         )
 
         # ----------------------------
-        # Step 6: Verify indexed chunks
+        # Step 6: Verify storage
         # ----------------------------
         show_collection_info(self.collection)
 
+        return {
+            "status": "success",
+            "chunks_created": len(chunks),
+        }
+    
     def query(self, question: str):
 
         # ==========================================================
