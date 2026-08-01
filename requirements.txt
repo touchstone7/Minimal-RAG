@@ -2,4 +2,7 @@ chromadb
 ollama
 pypdf
 numpy
+streamlit
 requests
+fastapi
+uvicorn
