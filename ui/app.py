@@ -1,170 +1,224 @@
 import requests
 import streamlit as st
 
+from styles import load_styles
+from components import (
+    render_header,
+    render_api_status,
+    render_knowledge_base,
+    render_ingest_button,
+    render_question_input,
+    render_question_buttons,
+    render_answer,
+    render_footer,
+)
+
 
 # ============================================================
 # Configuration
 # ============================================================
 
-API_URL = "http://127.0.0.1:8000"
+API_BASE_URL = "http://127.0.0.1:8000"
 
 
 # ============================================================
-# Page configuration
+# Page Configuration
 # ============================================================
 
 st.set_page_config(
     page_title="Minimal RAG",
     page_icon="🧠",
-    layout="centered",
+    layout="wide",
+    initial_sidebar_state="collapsed",
 )
 
 
 # ============================================================
-# Header
+# Styling
 # ============================================================
 
-st.title("🧠 Minimal RAG")
-st.write(
-    "Ask questions about the documents indexed by the RAG system."
-)
+load_styles()
 
 
 # ============================================================
-# API Health Check
+# API Functions
 # ============================================================
 
-try:
+def check_api():
 
-    response = requests.get(
-        f"{API_URL}/health",
-        timeout=5
-    )
+    try:
 
-    if response.status_code == 200:
+        response = requests.get(
+            f"{API_BASE_URL}/health",
+            timeout=3,
+        )
 
-        st.success("RAG API is running")
+        return response.status_code == 200
 
-    else:
+    except requests.RequestException:
 
-        st.error("RAG API is not responding correctly.")
-
-except requests.RequestException:
-
-    st.error(
-        "Could not connect to the FastAPI server. "
-        "Make sure Uvicorn is running."
-    )
+        return False
 
 
-st.divider()
+def ingest_documents():
+
+    try:
+
+        response = requests.post(
+            f"{API_BASE_URL}/ingest",
+            timeout=120,
+        )
+
+        response.raise_for_status()
+
+        return response.json()
+
+    except requests.RequestException as error:
+
+        return {
+            "error": str(error)
+        }
+
+
+def ask_question(question):
+
+    try:
+
+        response = requests.post(
+            f"{API_BASE_URL}/query",
+            json={
+                "question": question
+            },
+            timeout=120,
+        )
+
+        response.raise_for_status()
+
+        return response.json()
+
+    except requests.RequestException as error:
+
+        return {
+            "error": str(error)
+        }
 
 
 # ============================================================
-# Document Ingestion
+# UI
 # ============================================================
 
-st.subheader("📚 Document Ingestion")
+render_header()
 
-st.write(
-    "Ingest the documents currently present in the project's data directory."
-)
 
-if st.button("Ingest Documents"):
+# ------------------------------------------------------------
+# API Status
+# ------------------------------------------------------------
+
+api_running = check_api()
+
+render_api_status(api_running)
+
+
+# ------------------------------------------------------------
+# Knowledge Base
+# ------------------------------------------------------------
+
+render_knowledge_base()
+
+
+# ------------------------------------------------------------
+# Ingestion
+# ------------------------------------------------------------
+
+if render_ingest_button(api_running):
 
     with st.spinner("Ingesting documents..."):
 
-        try:
+        result = ingest_documents()
 
-            response = requests.post(
-                f"{API_URL}/ingest",
-                timeout=300
-            )
+    if "error" in result:
 
-            if response.status_code == 200:
+        st.error(
+            f"Ingestion failed: {result['error']}"
+        )
 
-                result = response.json()
+    else:
 
-                st.success("Documents ingested successfully.")
+        chunks = result.get(
+            "chunks_created",
+            "unknown",
+        )
 
-                st.write(
-                    f"Created **{result['chunks_created']} chunks**."
-                )
-
-            else:
-
-                st.error(
-                    f"Ingestion failed. "
-                    f"HTTP {response.status_code}"
-                )
-
-                st.code(response.text)
-
-        except requests.RequestException as error:
-
-            st.error(
-                "Could not connect to the FastAPI server."
-            )
-
-            st.code(str(error))
+        st.success(
+            f"Documents ingested successfully · "
+            f"{chunks} chunks created"
+        )
 
 
 st.divider()
 
 
-# ============================================================
-# Question / Answer
-# ============================================================
+# ------------------------------------------------------------
+# Question
+# ------------------------------------------------------------
 
-st.subheader("💬 Ask a Question")
+question = render_question_input()
 
-question = st.text_input(
-    "Enter your question:",
-    placeholder="How does CPU handle memory usage?"
+
+# ------------------------------------------------------------
+# Buttons
+# ------------------------------------------------------------
+
+ask_clicked, clear_clicked = render_question_buttons(
+    api_running
 )
 
 
-if st.button("Ask"):
+if clear_clicked:
+
+    st.rerun()
+
+
+# ------------------------------------------------------------
+# Query
+# ------------------------------------------------------------
+
+if ask_clicked:
 
     if not question.strip():
 
-        st.warning("Please enter a question.")
+        st.warning(
+            "Please enter a question first."
+        )
 
     else:
 
-        with st.spinner("Thinking..."):
+        with st.spinner(
+            "Searching your knowledge base..."
+        ):
 
-            try:
+            result = ask_question(
+                question.strip()
+            )
 
-                response = requests.post(
-                    f"{API_URL}/query",
-                    json={
-                        "question": question
-                    },
-                    timeout=300
-                )
+        if "error" in result:
 
-                if response.status_code == 200:
+            st.error(
+                f"Query failed: {result['error']}"
+            )
 
-                    result = response.json()
+        else:
 
-                    st.subheader("Answer")
+            answer = result.get(
+                "answer",
+                "No answer returned.",
+            )
 
-                    st.write(result["answer"])
+            render_answer(answer)
 
-                else:
 
-                    st.error(
-                        f"Query failed. "
-                        f"HTTP {response.status_code}"
-                    )
+# ------------------------------------------------------------
+# Footer
+# ------------------------------------------------------------
 
-                    st.code(response.text)
-
-            except requests.RequestException as error:
-
-                st.error(
-                    "Could not connect to the FastAPI server."
-                )
-
-                st.code(str(error))
+render_footer()
