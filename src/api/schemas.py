@@ -8,3 +8,10 @@ class QueryRequest(BaseModel):
 class QueryResponse(BaseModel):
     question: str
     answer: str
+
+
+class IngestResponse(BaseModel):
+    status: str
+    filename: str
+    chunks_added: int
+    total_chunks: int

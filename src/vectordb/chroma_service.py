@@ -1,3 +1,5 @@
+import hashlib
+
 import chromadb
 
 from src.config import (
@@ -21,7 +23,19 @@ def create_collection():
     return collection
 
 
-def index_chunks(collection, chunks: list[EmbeddedChunk]):
+def _generate_chunk_id(chunk: EmbeddedChunk, index: int):
+
+    raw_id = f"{chunk.filename}:{index}"
+
+    return hashlib.sha256(
+        raw_id.encode("utf-8")
+    ).hexdigest()
+
+
+def index_chunks(
+    collection,
+    chunks: list[EmbeddedChunk]
+):
 
     ids = []
     documents = []
@@ -30,11 +44,20 @@ def index_chunks(collection, chunks: list[EmbeddedChunk]):
 
     for index, chunk in enumerate(chunks):
 
-        ids.append(str(index))
+        ids.append(
+            _generate_chunk_id(
+                chunk,
+                index
+            )
+        )
 
-        documents.append(chunk.text)
+        documents.append(
+            chunk.text
+        )
 
-        embeddings.append(chunk.embedding)
+        embeddings.append(
+            chunk.embedding
+        )
 
         metadatas.append(
             {
@@ -52,7 +75,10 @@ def index_chunks(collection, chunks: list[EmbeddedChunk]):
 
 def show_collection_info(collection):
 
-    print(f"Collection contains {collection.count()} chunk(s)")
+    print(
+        f"Collection contains "
+        f"{collection.count()} chunk(s)"
+    )
 
 
 def inspect_collection(collection):
