@@ -1,617 +1,553 @@
 # Minimal RAG
 
-A lightweight Retrieval-Augmented Generation (RAG) application built in
-Python.
+A lightweight, fully local Retrieval-Augmented Generation (RAG) application built from the ground up.
 
-The project demonstrates a complete local RAG pipeline:
+**Documents → Loaders → Chunking → Embeddings → ChromaDB → Retrieval → Prompt → Ollama LLM → Answer**
 
-**Documents → Loaders → Chunking → Embeddings → ChromaDB → Retrieval →
-Prompt → Ollama LLM**
-
-It now exposes the pipeline through a **FastAPI backend** and provides a
-simple **Streamlit web UI**.
-
-------------------------------------------------------------------------
+The project currently exposes the pipeline through a **FastAPI backend** and a **React frontend**.
 
 ## Features
 
--   Load supported documents from the project data directory
--   Multiple document loaders through a loader factory
--   Multiple chunking strategies through a chunker factory
--   Generate embeddings locally using Ollama
--   Store embeddings in persistent ChromaDB
--   Retrieve relevant chunks for a user question
--   Generate grounded answers using a local Ollama LLM
--   FastAPI REST API
--   Automatic FastAPI Swagger documentation
--   Streamlit web UI
--   Configurable RAG pipeline
--   Clean separation between API, service, retrieval, ingestion, and UI
-    layers
-
-------------------------------------------------------------------------
+- Multiple document loaders
+- Character-based and sentence-based chunking
+- Configurable chunker factory
+- Local embeddings through Ollama
+- Persistent ChromaDB vector database
+- Semantic retrieval
+- Context-aware prompt construction
+- Local LLM generation through Ollama
+- FastAPI REST API + Swagger documentation
+- React frontend for document ingestion and querying
+- Incremental document ingestion
+- Knowledge base persistence across backend restarts
+- Clear separation between API, service, retrieval, vector DB, and UI layers
 
 ## Architecture
 
-``` text
-                         User
-                           │
-                           ▼
-                    ┌─────────────┐
-                    │  Streamlit  │
-                    │     UI      │
-                    └──────┬──────┘
-                           │ HTTP
-                           ▼
-                    ┌─────────────┐
-                    │   FastAPI   │
-                    │     API     │
-                    └──────┬──────┘
-                           │
-                           ▼
-                    ┌─────────────┐
-                    │  RagService │
-                    └──────┬──────┘
-                           │
-          ┌────────────────┼─────────────────┐
-          ▼                ▼                 ▼
-     Document          Chunking          Embeddings
-      Loaders             │                 │
-          │               │                 ▼
-          │               │             Ollama
-          │               │          nomic-embed-text
-          │               │                 │
-          └───────────────┴─────────────────┤
-                                            ▼
-                                      ┌───────────┐
-                                      │ ChromaDB  │
-                                      └─────┬─────┘
-                                            │
-                                         Retrieve
-                                            │
-                                            ▼
-                                      Prompt Builder
-                                            │
-                                            ▼
-                                         Ollama
-                                          Qwen
-                                            │
-                                            ▼
-                                         Answer
+```text
+User
+  ↓
+React Frontend
+  ↓ HTTP
+FastAPI
+  ↓
+RagService
+  ├── Loaders
+  ├── Chunkers
+  ├── Embeddings → Ollama / nomic-embed-text
+  └── ChromaDB (persistent)
+          ↓
+      Retrieval
+          ↓
+    Prompt Builder
+          ↓
+    Ollama / qwen3:8b
+          ↓
+        Answer
 ```
-
-------------------------------------------------------------------------
 
 ## Project Structure
 
-``` text
+```text
 Minimal-RAG/
-│
 ├── src/
 │   ├── api/
 │   │   ├── app.py
 │   │   └── schemas.py
-│   │
 │   ├── chunkers/
 │   │   ├── character_chunker.py
 │   │   ├── sentence_chunker.py
 │   │   └── chunker_factory.py
-│   │
 │   ├── embeddings/
 │   │   └── embeddings_service.py
-│   │
 │   ├── llm/
 │   │   └── ollama_service.py
-│   │
 │   ├── loaders/
 │   │   ├── loader_factory.py
 │   │   └── ...
-│   │
 │   ├── retrieval/
 │   │   ├── retriever.py
 │   │   └── prompt_builder.py
-│   │
 │   ├── services/
 │   │   └── rag_service.py
-│   │
 │   ├── vectordb/
 │   │   └── chroma_service.py
-│   │
 │   ├── config.py
 │   ├── main.py
 │   └── models.py
-│
-├── ui/
-│   └── app.py
-│
+├── frontend/
+│   ├── src/
+│   │   ├── api/ragApi.jsx
+│   │   ├── components/
+│   │   │   ├── Background.jsx
+│   │   │   ├── Header.jsx
+│   │   │   ├── IngestPanel.jsx
+│   │   │   ├── QueryPanel.jsx
+│   │   │   └── ResponsePanel.jsx
+│   │   ├── App.jsx
+│   │   └── styles.css
+│   └── ...
 ├── data/
-│   └── *.txt / supported documents
-│
 ├── chroma_db/
-│   └── persistent ChromaDB data
-│
 ├── .venv/
 ├── .gitignore
 ├── README.md
 └── requirements.txt
 ```
 
-------------------------------------------------------------------------
-
 ## RAG Pipeline
 
-### 1. Document Loading
+### 1. Loading
 
-Documents are loaded from the configured data directory.
+The loader factory selects a loader based on document type.
 
-The loader factory selects the appropriate loader based on the document
-type.
+Supported upload formats:
+
+```text
+TXT · Markdown · PDF · DOCX
+```
 
 ### 2. Chunking
 
-Documents are split into smaller chunks before embedding.
+Documents are split into smaller chunks.
 
-Current chunking strategies include:
+Current strategies:
 
--   Character-based chunking
--   Sentence-based chunking
-
-The chunker factory allows the strategy to be selected through
-configuration.
+- Character-based chunking
+- Sentence-based chunking
 
 ### 3. Embeddings
 
-Each chunk is converted into a numerical vector using the local Ollama
-embedding model:
+Chunks are converted into vectors using:
 
-``` text
+```text
 nomic-embed-text
 ```
 
-### 4. Vector Database
+### 4. Persistent ChromaDB
 
-Embeddings and their associated text/metadata are stored in a persistent
-ChromaDB collection.
+Embeddings, chunk text, and metadata are stored in:
 
-The database is stored locally under:
-
-``` text
+```text
 chroma_db/
 ```
 
+The database is persistent, so restarting FastAPI does **not** remove the existing knowledge base.
+
 ### 5. Retrieval
 
-When a user asks a question:
-
-1.  The question is embedded.
-2.  ChromaDB searches for semantically similar chunks.
-3.  The most relevant chunks are returned.
-
-### 6. Prompt Construction
-
-The retrieved chunks are combined with the user's question to construct
-the context-aware prompt.
-
-### 7. LLM Generation
-
-The prompt is sent to the locally running Ollama LLM.
-
-The generated answer is returned to the API and displayed in the UI.
-
-------------------------------------------------------------------------
-
-# Local Setup
-
-## Prerequisites
-
-You need:
-
--   Python 3.10+
--   Git
--   Ollama
--   A local Ollama embedding model
--   A local Ollama generation model
-
-The project is designed to run locally and does not require a paid LLM
-API.
-
-------------------------------------------------------------------------
-
-## 1. Clone the Repository
-
-``` bash
-git clone https://github.com/touchstone7/Minimal-RAG
-cd Minimal-RAG
+```text
+Question
+   ↓
+Question embedding
+   ↓
+ChromaDB similarity search
+   ↓
+Relevant chunks
 ```
 
-------------------------------------------------------------------------
+### 6. Prompt + LLM
 
-## 2. Create a Virtual Environment
+Retrieved context is combined with the question and sent to the local generation model:
 
-Windows PowerShell:
-
-``` powershell
-python -m venv .venv
-```
-
-Activate it:
-
-``` powershell
-.venv\Scripts\Activate.ps1
-```
-
-If PowerShell blocks activation because of its execution policy, you can
-use the appropriate PowerShell execution-policy adjustment for your
-environment or activate the environment from another supported shell.
-
-------------------------------------------------------------------------
-
-## 3. Install Python Dependencies
-
-``` powershell
-pip install -r requirements.txt
-```
-
-Current direct dependencies include:
-
-``` text
-chromadb
-ollama
-pypdf
-numpy
-streamlit
-requests
-fastapi
-uvicorn
-```
-
-------------------------------------------------------------------------
-
-# Ollama Setup
-
-Ollama runs the local embedding model and LLM.
-
-Make sure Ollama is installed and running.
-
-Check:
-
-``` powershell
-ollama --version
-```
-
-Check currently available models:
-
-``` powershell
-ollama list
-```
-
-The project currently uses:
-
-``` text
-nomic-embed-text
-```
-
-for embeddings.
-
-A generation model such as:
-
-``` text
+```text
 qwen3:8b
 ```
 
-can be used for answering questions.
+## Ingestion vs Query
 
-If the required models are not installed, pull them with Ollama.
+These are separate operations.
 
-For example:
+### Ingestion
 
-``` powershell
-ollama pull nomic-embed-text
-ollama pull qwen3:8b
+```text
+Upload
+  ↓
+Save document
+  ↓
+Load
+  ↓
+Chunk
+  ↓
+Embed
+  ↓
+Add to ChromaDB
 ```
 
-Check models currently loaded into memory:
+The React UI calls:
 
-``` powershell
-ollama ps
-```
-
-When no models are actively loaded, this command should show an empty
-process list.
-
-------------------------------------------------------------------------
-
-# Running the Project
-
-The project now has two execution modes.
-
-## CLI Mode
-
-From the project root:
-
-``` powershell
-python -m src.main
-```
-
-This runs the RAG pipeline directly from the command line.
-
-------------------------------------------------------------------------
-
-## API Mode
-
-Start FastAPI with Uvicorn:
-
-``` powershell
-uvicorn src.api.app:app --reload
-```
-
-The API will be available at:
-
-``` text
-http://127.0.0.1:8000
-```
-
-### Swagger UI
-
-FastAPI automatically provides interactive API documentation at:
-
-``` text
-http://127.0.0.1:8000/docs
-```
-
-You can use this page to test the endpoints without needing Postman or
-another API client.
-
-------------------------------------------------------------------------
-
-## Streamlit UI
-
-Keep the FastAPI server running in one terminal.
-
-Open another terminal from the project root and activate the same
-virtual environment.
-
-Then run:
-
-``` powershell
-streamlit run ui/app.py
-```
-
-The Streamlit application will normally be available at:
-
-``` text
-http://localhost:8501
-```
-
-The UI communicates with the FastAPI backend.
-
-------------------------------------------------------------------------
-
-# API Endpoints
-
-## Health Check
-
-``` http
-GET /health
+```text
+POST /ingest
 ```
 
 Example response:
 
-``` json
+```json
+{
+  "status": "success",
+  "filename": "example.pdf",
+  "chunks_added": 38,
+  "total_chunks": 90
+}
+```
+
+### Query
+
+Once indexed:
+
+```text
+Question
+  ↓
+Existing ChromaDB
+  ↓
+Retrieve
+  ↓
+Prompt
+  ↓
+Ollama
+  ↓
+Answer
+```
+
+You **do not need to ingest again merely because the application restarted**. `RagService` connects to the existing persistent ChromaDB collection during startup.
+
+```text
+Ingest once
+    ↓
+Stop backend
+    ↓
+Start backend later
+    ↓
+Query immediately
+```
+
+## Local Setup
+
+### Prerequisites
+
+- Python 3.10+
+- Git
+- Ollama
+- Node.js / npm
+- Ollama embedding model
+- Ollama generation model
+
+### Clone
+
+```powershell
+git clone https://github.com/touchstone7/Minimal-RAG
+cd Minimal-RAG
+```
+
+### Python environment
+
+```powershell
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+```
+
+### Install dependencies
+
+```powershell
+pip install -r requirements.txt
+```
+
+## Ollama Setup
+
+Check:
+
+```powershell
+ollama --version
+ollama list
+```
+
+Required models:
+
+```text
+nomic-embed-text
+qwen3:8b
+```
+
+Install if necessary:
+
+```powershell
+ollama pull nomic-embed-text
+ollama pull qwen3:8b
+```
+
+Check active models:
+
+```powershell
+ollama ps
+```
+
+## Running the Project
+
+The current web application has two processes.
+
+### 1. FastAPI backend
+
+From the project root:
+
+```powershell
+uvicorn src.api.app:app --reload
+```
+
+Backend:
+
+```text
+http://127.0.0.1:8000
+```
+
+### 2. React frontend
+
+Open another terminal:
+
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+Frontend:
+
+```text
+http://localhost:5173
+```
+
+Open:
+
+```text
+http://localhost:5173
+```
+
+## API Endpoints
+
+### Health
+
+```http
+GET /health
+```
+
+```json
 {
   "status": "running"
 }
 ```
 
-------------------------------------------------------------------------
+### Ingest
 
-## Ingest Documents
-
-``` http
+```http
 POST /ingest
 ```
 
-This triggers document ingestion and indexing using the documents
-configured for the project.
+Accepts a multipart file upload.
 
-Example response:
+Supported:
 
-``` json
+```text
+.txt
+.md
+.pdf
+.docx
+```
+
+Example:
+
+```json
 {
   "status": "success",
-  "chunks_created": 52
+  "filename": "example.pdf",
+  "chunks_added": 38,
+  "total_chunks": 90
 }
 ```
 
-------------------------------------------------------------------------
+### Query
 
-## Ask a Question
-
-``` http
+```http
 POST /query
 ```
 
 Request:
 
-``` json
+```json
 {
-  "question": "What is a database?"
+  "question": "What does the document say about caching?"
 }
 ```
 
-Example response:
+Response:
 
-``` json
+```json
 {
-  "question": "What is a database?",
-  "answer": "A database is a system that stores and organizes data efficiently..."
+  "question": "What does the document say about caching?",
+  "answer": "A cache is a hardware or software component that stores data so future requests for that data can be served faster."
 }
 ```
 
-------------------------------------------------------------------------
+If the persistent knowledge base is empty, the backend rejects the query rather than generating an answer without document context.
 
-# Typical Development Workflow
+## Swagger UI
 
-Start the backend:
+FastAPI automatically provides:
 
-``` powershell
-uvicorn src.api.app:app --reload
-```
-
-Then, in another terminal:
-
-``` powershell
-streamlit run ui/app.py
-```
-
-Open:
-
-``` text
-http://localhost:8501
-```
-
-Alternatively, use the API directly through:
-
-``` text
+```text
 http://127.0.0.1:8000/docs
 ```
 
-------------------------------------------------------------------------
+This can be used to test the backend independently of React.
 
-# Important: Ollama vs Python Dependencies
+## React Frontend
 
-The Python package:
+The frontend handles:
 
-``` text
-ollama
+```text
+Backend health status
+Document upload
+Ingestion result
+Query input
+RAG response
 ```
 
-is only the Python client used by this project.
+Embedding, retrieval, and LLM inference remain in the Python backend.
 
-The actual Ollama application runs separately on the machine and hosts
-the models.
+The current UI uses a minimal dark interface with a dedicated knowledge-base section, query interface, generated-response section, backend status, and local-inference branding.
 
-Conceptually:
+## Persistence
 
-``` text
-Python environment
-│
-├── ollama
-├── fastapi
-├── uvicorn
-├── chromadb
-└── streamlit
+Documents are saved in the configured data directory.
 
-Operating system
-│
-└── Ollama
-    ├── nomic-embed-text
-    └── qwen3:8b
-```
+Processed chunks and embeddings are stored in:
 
-------------------------------------------------------------------------
-
-# Persistent Vector Database
-
-ChromaDB is configured as a persistent local vector database.
-
-Vector data is stored on disk rather than existing only for the lifetime
-of the Python process.
-
-The local database directory is:
-
-``` text
+```text
 chroma_db/
 ```
 
-This allows the indexed data to survive application restarts.
+Therefore:
 
-The size of the database depends primarily on:
-
--   Number of documents
--   Number of chunks
--   Embedding dimensionality
--   Metadata
--   ChromaDB storage overhead
-
-------------------------------------------------------------------------
-
-# Development Notes
-
-The project deliberately separates responsibilities into different
-layers.
-
-``` text
-API
- ↓
-RagService
- ↓
-Loaders / Chunkers / Embeddings / VectorDB / Retrieval / LLM
+```text
+Ingest document
+       ↓
+Restart application
+       ↓
+Query existing knowledge base
 ```
 
-`RagService` acts as the main orchestration layer.
+No re-embedding is required merely because FastAPI restarted.
 
-This keeps `main.py` and the FastAPI endpoints thin and prevents the
-complete RAG pipeline from being duplicated in multiple entry points.
+## Development Workflow
 
-------------------------------------------------------------------------
+Typical session:
 
-# Current Status
+**Terminal 1:** Ensure Ollama is running.
+
+**Terminal 2:**
+
+```powershell
+uvicorn src.api.app:app --reload
+```
+
+**Terminal 3:**
+
+```powershell
+cd frontend
+npm run dev
+```
+
+Then open:
+
+```text
+http://localhost:5173
+```
+
+First-time knowledge-base setup:
+
+1. Start backend and frontend.
+2. Upload a document.
+3. Wait for ingestion metadata.
+4. Ask questions.
+5. Restart the backend if desired.
+6. Ask another question without ingesting again.
+
+## Development Notes
+
+`RagService` is the main orchestration layer:
+
+```text
+FastAPI
+   ↓
+RagService
+   ↓
+Loaders / Chunkers / Embeddings / ChromaDB
+   ↓
+Retriever
+   ↓
+Prompt Builder
+   ↓
+Ollama
+```
+
+This keeps API endpoints thin and avoids duplicating the RAG pipeline.
+
+## Current Status
 
 ### Completed
 
--   [x] Document loading
--   [x] Multiple document loaders
--   [x] Character chunking
--   [x] Sentence chunking
--   [x] Chunker factory
--   [x] Embedding generation
--   [x] Ollama integration
--   [x] Persistent ChromaDB
--   [x] Vector indexing
--   [x] Semantic retrieval
--   [x] Prompt construction
--   [x] Local LLM generation
--   [x] RAG service layer
--   [x] FastAPI backend
--   [x] Health endpoint
--   [x] Ingestion endpoint
--   [x] Query endpoint
--   [x] Swagger API documentation
--   [x] Streamlit UI
--   [x] End-to-end local UI testing
+- [x] Document loading
+- [x] Multiple document loaders
+- [x] Character chunking
+- [x] Sentence chunking
+- [x] Chunker factory
+- [x] Embedding generation
+- [x] Ollama integration
+- [x] Persistent ChromaDB
+- [x] Vector indexing
+- [x] Semantic retrieval
+- [x] Prompt construction
+- [x] Local LLM generation
+- [x] RAG service layer
+- [x] FastAPI backend
+- [x] Health endpoint
+- [x] Incremental document ingestion
+- [x] Query endpoint
+- [x] Swagger API documentation
+- [x] React frontend
+- [x] React document upload
+- [x] Ingestion metadata display
+- [x] Query interface
+- [x] RAG response display
+- [x] Backend health status
+- [x] Knowledge-base persistence across backend restarts
+- [x] End-to-end local testing
 
 ### Next Improvements
 
--   [ ] Upload documents directly through the UI
--   [ ] Support selecting specific files for a query
--   [ ] Improve ingestion status/progress
--   [ ] Show retrieved source documents
--   [ ] Add conversation/chat history
--   [ ] Improve error handling
--   [ ] Add automated tests
--   [ ] Add logging
--   [ ] Improve UI/UX
--   [ ] Containerize the application
--   [ ] Deploy the UI/API
--   [ ] Evaluate a cloud-hosted vector database
--   [ ] Add authentication if deployed publicly
+- [ ] Prevent duplicate chunk IDs when repeatedly ingesting documents with the same index range
+- [ ] Cleanly replace/re-index an existing document
+- [ ] Show retrieved source documents
+- [ ] Show retrieval scores/relevance
+- [ ] Add conversation history
+- [ ] Improve ingestion progress reporting
+- [ ] Add document deletion/management
+- [ ] Add document-specific querying
+- [ ] Add automated tests
+- [ ] Add structured logging
+- [ ] Improve error handling
+- [ ] Containerize the application
+- [ ] Deploy frontend/backend
+- [ ] Evaluate alternative vector databases
+- [ ] Add authentication for public deployment
 
-------------------------------------------------------------------------
+## Project Goal
 
-# Project Goal
+The goal of **Minimal RAG** is to understand and build RAG from the ground up rather than hiding the core pipeline behind a high-level framework.
 
-The goal of **Minimal RAG** is to understand and build a RAG system from
-the ground up rather than hiding the core pipeline behind a high-level
-framework.
+The project is intentionally modular so each component can be understood, replaced, tested, and improved independently.
 
-The project is intentionally modular so that each major component can be
-understood, replaced, and improved independently.
+Long-term direction:
 
-Ultimately, the project is intended to evolve from a simple local RAG
-implementation into a small production-style application with:
-
-``` text
+```text
 Document Upload
        ↓
 Document Processing
@@ -620,16 +556,16 @@ Chunking
        ↓
 Embeddings
        ↓
-Vector Database
+Persistent ChromaDB
        ↓
 Semantic Retrieval
        ↓
-LLM
+Prompt Construction
        ↓
-Web UI
+Local LLM
+       ↓
+React Web Interface
 ```
-
-------------------------------------------------------------------------
 
 ## License
 
