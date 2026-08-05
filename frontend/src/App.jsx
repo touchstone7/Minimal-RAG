@@ -2,110 +2,283 @@ import { useEffect, useState } from "react";
 
 import Background from "./components/Background";
 import Header from "./components/Header";
+import IngestPanel from "./components/IngestPanel";
 import QueryPanel from "./components/QueryPanel";
 import ResponsePanel from "./components/ResponsePanel";
 
-import { checkApiHealth, queryRag } from "./api/ragApi";
+import {
+    checkApiHealth,
+    queryRag,
+    ingestDocument,
+} from "./api/ragApi";
 
 
 function App() {
+
+    // =========================================================
+    // BACKEND STATUS
+    // =========================================================
+
     const [isOnline, setIsOnline] = useState(false);
+
+
+    // =========================================================
+    // QUERY STATE
+    // =========================================================
+
     const [answer, setAnswer] = useState("");
     const [loading, setLoading] = useState(false);
 
 
-    // ---------------------------------------------------------
-    // Check whether FastAPI backend is available
-    // ---------------------------------------------------------
+    // =========================================================
+    // INGESTION STATE
+    // =========================================================
+
+    const [ingesting, setIngesting] = useState(false);
+
+    const [ingestionStatus, setIngestionStatus] =
+        useState(null);
+
+
+    // =========================================================
+    // BACKEND HEALTH CHECK
+    // =========================================================
+
     useEffect(() => {
+
         async function checkBackend() {
+
             try {
+
                 await checkApiHealth();
+
                 setIsOnline(true);
+
             } catch (error) {
-                console.error("Backend health check failed:", error);
+
+                console.error(
+                    "Backend health check failed:",
+                    error
+                );
+
                 setIsOnline(false);
             }
         }
 
+
         checkBackend();
+
+
+        const interval = setInterval(
+            checkBackend,
+            5000
+        );
+
+
+        return () => {
+            clearInterval(interval);
+        };
+
     }, []);
 
 
-    // ---------------------------------------------------------
-    // Send user's question to RAG backend
-    // ---------------------------------------------------------
+    // =========================================================
+    // QUERY
+    // =========================================================
+
     async function handleQuery(question) {
-        if (!question.trim()) {
+
+        if (!question?.trim()) {
             return;
         }
+
 
         setLoading(true);
         setAnswer("");
 
-        try {
-            const result = await queryRag(question);
 
-            // Adjust this if your API returns a different field.
+        try {
+
+            const result =
+                await queryRag(question);
+
+
             setAnswer(
                 result.answer ||
                 result.response ||
                 "No answer was returned."
             );
 
+
         } catch (error) {
-            console.error("RAG query failed:", error);
+
+            console.error(
+                "RAG query failed:",
+                error
+            );
+
 
             setAnswer(
                 "Unable to get a response from the RAG backend."
             );
 
         } finally {
+
             setLoading(false);
         }
     }
 
 
+    // =========================================================
+    // DOCUMENT INGESTION
+    // =========================================================
+
+    async function handleIngest(file) {
+
+        if (!file) {
+            return;
+        }
+
+
+        setIngesting(true);
+        setIngestionStatus(null);
+
+
+        try {
+
+            const result =
+                await ingestDocument(file);
+
+
+            setIngestionStatus({
+
+                success: true,
+
+                filename:
+                    result.filename,
+
+                chunksAdded:
+                    result.chunks_added,
+
+                totalChunks:
+                    result.total_chunks,
+
+            });
+
+
+        } catch (error) {
+
+            console.error(
+                "Document ingestion failed:",
+                error
+            );
+
+
+            setIngestionStatus({
+
+                success: false,
+
+                message:
+                    error.message ||
+                    "Unable to ingest the document.",
+
+            });
+
+
+        } finally {
+
+            setIngesting(false);
+        }
+    }
+
+
+    // =========================================================
+    // UI
+    // =========================================================
+
     return (
+
         <div className="app">
 
             <Background />
 
+
             <div className="app-content">
 
-                <Header isOnline={isOnline} />
+                <Header
+                    apiOnline={isOnline}
+                />
+
 
                 <main className="main">
 
                     <section className="hero">
 
-                        <div className="eyebrow">
+
+                        {/* =================================================
+                            KNOWLEDGE BASE
+                        ================================================= */}
+
+                        <IngestPanel
+                            isOnline={isOnline}
+                            ingesting={ingesting}
+                            ingestionStatus={ingestionStatus}
+                            onIngest={handleIngest}
+                        />
+
+
+                        {/* =================================================
                             KNOWLEDGE INTERFACE
-                        </div>
+                        ================================================= */}
 
-                        <h1 className="hero-title">
-                            Ask your knowledge base.
-                        </h1>
+                        <section className="knowledge-interface">
 
-                        <p className="hero-description">
-                            Retrieve relevant context from your documents
-                            and generate an answer using your local
-                            language model.
-                        </p>
+                            <div className="eyebrow">
+                                KNOWLEDGE INTERFACE
+                            </div>
 
-                        <QueryPanel
-                            onQuery={handleQuery}
-                            loading={loading}
-                        />
 
-                        <ResponsePanel
-                            answer={answer}
-                            loading={loading}
-                        />
+                            <h1 className="hero-title">
+                                Ask your knowledge base.
+                            </h1>
+
+
+                            <p className="hero-description">
+                                Retrieve relevant context from your
+                                documents and generate an answer using
+                                your local language model.
+                            </p>
+
+
+                            {/* -----------------------------------------
+                                QUERY
+                            ----------------------------------------- */}
+
+                            <QueryPanel
+                                onQuery={handleQuery}
+                                loading={loading}
+                            />
+
+
+                            {/* -----------------------------------------
+                                RESPONSE
+                            ----------------------------------------- */}
+
+                            <ResponsePanel
+                                answer={answer}
+                                loading={loading}
+                            />
+
+                        </section>
 
                     </section>
 
                 </main>
+
+
+                {/* =====================================================
+                    FOOTER
+                ===================================================== */}
 
                 <footer className="footer">
 
@@ -113,16 +286,24 @@ function App() {
                         MINIMAL-RAG / LOCAL INFERENCE
                     </span>
 
+
                     <span className="footer-right">
 
                         <span
                             className={
                                 isOnline
                                     ? "footer-online"
-                                    : ""
+                                    : "footer-offline"
                             }
                         >
-                            ● RAG {isOnline ? "ONLINE" : "OFFLINE"}
+
+                            ● RAG{" "}
+                            {
+                                isOnline
+                                    ? "ONLINE"
+                                    : "OFFLINE"
+                            }
+
                         </span>
 
                     </span>
@@ -136,9 +317,4 @@ function App() {
 }
 
 
-// IMPORTANT:
-// main.jsx imports App as:
-// import App from "./App.jsx";
-//
-// Therefore App.jsx MUST have a default export.
 export default App;

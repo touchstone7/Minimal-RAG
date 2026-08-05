@@ -7,11 +7,14 @@ function QueryPanel({ onQuery, loading }) {
 
 
     function handleSubmit(event) {
+
         event.preventDefault();
+
 
         if (!question.trim() || loading) {
             return;
         }
+
 
         onQuery(question);
 
@@ -21,19 +24,20 @@ function QueryPanel({ onQuery, loading }) {
 
     function handleKeyDown(event) {
 
-        // Enter = submit
-        // Shift + Enter = new line
         if (
             event.key === "Enter" &&
             !event.shiftKey
         ) {
+
             event.preventDefault();
+
             handleSubmit(event);
         }
     }
 
 
     return (
+
         <form
             className="query-area"
             onSubmit={handleSubmit}
@@ -50,11 +54,13 @@ function QueryPanel({ onQuery, loading }) {
                 disabled={loading}
             />
 
+
             <div className="query-controls">
 
                 <span className="query-hint">
                     ENTER TO QUERY · SHIFT + ENTER FOR NEW LINE
                 </span>
+
 
                 <button
                     type="submit"
@@ -64,7 +70,13 @@ function QueryPanel({ onQuery, loading }) {
                         !question.trim()
                     }
                 >
-                    {loading ? "QUERYING..." : "QUERY →"}
+
+                    {
+                        loading
+                            ? "QUERYING..."
+                            : "QUERY →"
+                    }
+
                 </button>
 
             </div>

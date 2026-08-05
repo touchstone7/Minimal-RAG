@@ -15,15 +15,30 @@ export default function ResponsePanel({
 
     async function copyAnswer() {
 
-        await navigator.clipboard.writeText(
-            answer
-        );
+        try {
+
+            await navigator.clipboard.writeText(
+                answer
+            );
+
+        } catch (error) {
+
+            console.error(
+                "Failed to copy response:",
+                error
+            );
+        }
     }
 
 
     return (
 
         <section className="response-section">
+
+
+            {/* =====================================================
+                RESPONSE HEADER
+            ===================================================== */}
 
             <div className="response-heading">
 
@@ -33,11 +48,14 @@ export default function ResponsePanel({
                         GENERATED RESPONSE
                     </div>
 
+
                     <div className="response-title">
 
                         <Sparkles size={15} />
 
-                        RAG OUTPUT
+                        <span>
+                            RAG OUTPUT
+                        </span>
 
                     </div>
 
@@ -45,22 +63,31 @@ export default function ResponsePanel({
 
 
                 <button
+                    type="button"
                     className="copy-button"
                     onClick={copyAnswer}
                 >
 
                     <Copy size={14} />
 
-                    COPY
+                    <span>
+                        COPY
+                    </span>
 
                 </button>
 
             </div>
 
 
+            {/* =====================================================
+                RESPONSE CONTENT
+            ===================================================== */}
+
             <div className="response-card">
 
-                {answer}
+                <p className="response-text">
+                    {answer}
+                </p>
 
             </div>
 

@@ -1,14 +1,9 @@
 import {
     Database,
-    Activity,
-    Cpu,
 } from "lucide-react";
 
 
-export default function Header({
-    apiOnline,
-    onOpenPanel,
-}) {
+export default function Header() {
 
     return (
 
@@ -33,37 +28,6 @@ export default function Header({
                 </div>
 
             </div>
-
-
-            <nav className="navigation">
-
-                <button
-                    onClick={() =>
-                        onOpenPanel("knowledge")
-                    }
-                >
-                    KNOWLEDGE
-                </button>
-
-
-                <button
-                    onClick={() =>
-                        onOpenPanel("retrieval")
-                    }
-                >
-                    RETRIEVAL
-                </button>
-
-
-                <button
-                    onClick={() =>
-                        onOpenPanel("system")
-                    }
-                >
-                    SYSTEM
-                </button>
-
-            </nav>
 
         </header>
     );
