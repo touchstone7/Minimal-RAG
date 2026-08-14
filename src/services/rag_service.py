@@ -18,7 +18,7 @@ from src.vectordb.chroma_service import (
 from src.retrieval.retriever import retrieve
 from src.retrieval.prompt_builder import build_prompt
 
-from src.llm.ollama_service import ask_llm
+from src.llm.llm_factory import get_llm_provider
 
 
 class RagService:
@@ -29,8 +29,9 @@ class RagService:
 
         Connect to the persistent ChromaDB collection immediately.
 
-        This means the application can query an existing knowledge
-        base after restarting without requiring ingestion again.
+        The LLM is provided through an abstraction so RagService
+        does not depend directly on Ollama, Gemini, or any other
+        specific provider.
         """
 
         # ----------------------------------------------------------
@@ -39,13 +40,24 @@ class RagService:
 
         self.collection = create_collection()
 
+        # ----------------------------------------------------------
+        # Initialize configured LLM provider
+        # ----------------------------------------------------------
+
+        self.llm_provider = get_llm_provider()
+
         print(
             f"\nRAG service initialized."
         )
 
         print(
             f"Existing knowledge base contains "
-            f"{self.collection.count()} chunk(s).\n"
+            f"{self.collection.count()} chunk(s)."
+        )
+
+        print(
+            f"LLM provider: "
+            f"{LLM_PROVIDER}\n"
         )
 
 
@@ -86,6 +98,7 @@ class RagService:
         )
 
         if not chunks:
+
             return {
                 "status": "success",
                 "chunks_created": 0,
@@ -299,7 +312,7 @@ class RagService:
         #      ↓
         # Prompt Construction
         #      ↓
-        # LLM
+        # LLM Provider
         #      ↓
         # Final Answer
         # ==========================================================
@@ -337,6 +350,6 @@ class RagService:
         # Step 3: Generate final answer
         # ----------------------------
 
-        return ask_llm(
+        return self.llm_provider.generate(
             prompt
         )

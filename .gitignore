@@ -13,6 +13,11 @@ env/
 # Chroma database
 chroma_db/
 
+# Environment variables / secrets
+.env
+.env.*
+!.env.example
+
 # OS
 .DS_Store
 Thumbs.db
