@@ -1,4 +1,5 @@
 from pathlib import Path
+from uuid import uuid4
 
 from src.models import Document
 
@@ -15,6 +16,7 @@ def load_markdown_documents(
 
         documents.append(
             Document(
+                document_id=uuid4(),
                 filename=file.name,
                 content=file.read_text(
                     encoding="utf-8"

@@ -28,7 +28,7 @@ def _generate_chunk_id(
 ) -> str:
 
     raw_id = (
-        f"{chunk.filename}:"
+        f"{chunk.document_id}:"
         f"{chunk.chunk_index}"
     )
 
@@ -63,6 +63,9 @@ def index_chunks(
 
         metadatas.append(
             {
+                "document_id": str(
+                    chunk.document_id
+                ),
                 "document": chunk.filename,
                 "chunk_index": chunk.chunk_index,
             }

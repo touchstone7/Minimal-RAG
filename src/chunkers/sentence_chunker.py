@@ -6,7 +6,7 @@ from src.models import Chunk, Document
 def sentence_chunk_documents(
     documents: list[Document],
     sentences_per_chunk: int = 2
-) -> list[Chunk]:
+):
 
     chunks: list[Chunk] = []
 
@@ -31,11 +31,9 @@ def sentence_chunk_documents(
                 ]
             )
 
-            if not chunk_text:
-                continue
-
             chunks.append(
                 Chunk(
+                    document_id=document.document_id,
                     filename=document.filename,
                     chunk_index=chunk_index,
                     text=chunk_text

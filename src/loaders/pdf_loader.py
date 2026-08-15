@@ -1,4 +1,5 @@
 from pathlib import Path
+from uuid import uuid4
 
 from pypdf import PdfReader
 
@@ -27,6 +28,7 @@ def load_pdf_documents(
 
         documents.append(
             Document(
+                document_id=uuid4(),
                 filename=file.name,
                 content=text
             )

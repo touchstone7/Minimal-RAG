@@ -1,4 +1,5 @@
 from pathlib import Path
+from uuid import uuid4
 
 from docx import Document as DocxDocument
 
@@ -24,6 +25,7 @@ def load_docx_documents(
 
         documents.append(
             Document(
+                document_id=uuid4(),
                 filename=file.name,
                 content=text
             )

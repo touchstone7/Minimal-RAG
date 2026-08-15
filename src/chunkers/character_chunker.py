@@ -8,8 +8,6 @@ def chunk_documents(
 ) -> list[Chunk]:
     """
     Split documents into overlapping character-based chunks.
-
-    Each chunk receives a stable index within its source document.
     """
 
     if overlap >= chunk_size:
@@ -38,6 +36,7 @@ def chunk_documents(
 
             chunks.append(
                 Chunk(
+                    document_id=document.document_id,
                     filename=document.filename,
                     chunk_index=chunk_index,
                     text=chunk_text

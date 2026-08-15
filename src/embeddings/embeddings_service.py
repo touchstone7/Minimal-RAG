@@ -9,8 +9,6 @@ def embed_chunks(
 ) -> list[EmbeddedChunk]:
     """
     Generate embeddings for all chunks.
-
-    Chunk identity is preserved while generating embeddings.
     """
 
     embedded_chunks: list[EmbeddedChunk] = []
@@ -26,6 +24,7 @@ def embed_chunks(
 
         embedded_chunks.append(
             EmbeddedChunk(
+                document_id=chunk.document_id,
                 filename=chunk.filename,
                 chunk_index=chunk.chunk_index,
                 text=chunk.text,
