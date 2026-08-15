@@ -23,9 +23,14 @@ def create_collection():
     return collection
 
 
-def _generate_chunk_id(chunk: EmbeddedChunk, index: int):
+def _generate_chunk_id(
+    chunk: EmbeddedChunk
+) -> str:
 
-    raw_id = f"{chunk.filename}:{index}"
+    raw_id = (
+        f"{chunk.filename}:"
+        f"{chunk.chunk_index}"
+    )
 
     return hashlib.sha256(
         raw_id.encode("utf-8")
@@ -42,13 +47,10 @@ def index_chunks(
     embeddings = []
     metadatas = []
 
-    for index, chunk in enumerate(chunks):
+    for chunk in chunks:
 
         ids.append(
-            _generate_chunk_id(
-                chunk,
-                index
-            )
+            _generate_chunk_id(chunk)
         )
 
         documents.append(
@@ -61,7 +63,8 @@ def index_chunks(
 
         metadatas.append(
             {
-                "document": chunk.filename
+                "document": chunk.filename,
+                "chunk_index": chunk.chunk_index,
             }
         )
 

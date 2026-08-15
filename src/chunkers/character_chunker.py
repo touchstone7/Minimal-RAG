@@ -1,5 +1,6 @@
 from src.models import Chunk, Document
 
+
 def chunk_documents(
     documents: list[Document],
     chunk_size: int,
@@ -8,17 +9,13 @@ def chunk_documents(
     """
     Split documents into overlapping character-based chunks.
 
-    Args:
-        documents: List of loaded documents.
-        chunk_size: Maximum characters in one chunk.
-        overlap: Number of overlapping characters.
-
-    Returns:
-        List of Chunk objects.
+    Each chunk receives a stable index within its source document.
     """
 
     if overlap >= chunk_size:
-        raise ValueError("overlap must be smaller than chunk_size")
+        raise ValueError(
+            "overlap must be smaller than chunk_size"
+        )
 
     chunks: list[Chunk] = []
 
@@ -27,6 +24,8 @@ def chunk_documents(
     for document in documents:
 
         text = document.content
+
+        chunk_index = 0
 
         for start in range(0, len(text), step):
 
@@ -40,9 +39,12 @@ def chunk_documents(
             chunks.append(
                 Chunk(
                     filename=document.filename,
+                    chunk_index=chunk_index,
                     text=chunk_text
                 )
             )
+
+            chunk_index += 1
 
             if end >= len(text):
                 break

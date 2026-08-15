@@ -1,4 +1,3 @@
-
 import ollama
 
 from src.models import Chunk, EmbeddedChunk
@@ -11,12 +10,7 @@ def embed_chunks(
     """
     Generate embeddings for all chunks.
 
-    Args:
-        chunks: List of Chunk objects.
-        model: Ollama embedding model.
-
-    Returns:
-        List of EmbeddedChunk objects.
+    Chunk identity is preserved while generating embeddings.
     """
 
     embedded_chunks: list[EmbeddedChunk] = []
@@ -33,6 +27,7 @@ def embed_chunks(
         embedded_chunks.append(
             EmbeddedChunk(
                 filename=chunk.filename,
+                chunk_index=chunk.chunk_index,
                 text=chunk.text,
                 embedding=embedding
             )
