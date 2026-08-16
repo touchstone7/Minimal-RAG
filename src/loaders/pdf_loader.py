@@ -1,37 +1,29 @@
 from pathlib import Path
-from uuid import uuid4
+from uuid import UUID
 
 from pypdf import PdfReader
 
 from src.models import Document
 
 
-def load_pdf_documents(
-    directory: str
-) -> list[Document]:
+def load_pdf_document(
+    file_path: Path,
+    document_id: UUID
+) -> Document:
 
-    documents: list[Document] = []
+    reader = PdfReader(file_path)
 
-    data_path = Path(directory)
+    text = ""
 
-    for file in data_path.glob("*.pdf"):
+    for page in reader.pages:
 
-        reader = PdfReader(file)
+        extracted = page.extract_text()
 
-        text = ""
+        if extracted:
+            text += extracted + "\n"
 
-        for page in reader.pages:
-            extracted = page.extract_text()
-
-            if extracted:
-                text += extracted + "\n"
-
-        documents.append(
-            Document(
-                document_id=uuid4(),
-                filename=file.name,
-                content=text
-            )
-        )
-
-    return documents
+    return Document(
+        document_id=document_id,
+        filename=file_path.name,
+        content=text
+    )

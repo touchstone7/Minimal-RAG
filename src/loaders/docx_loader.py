@@ -1,34 +1,25 @@
 from pathlib import Path
-from uuid import uuid4
+from uuid import UUID
 
 from docx import Document as DocxDocument
 
 from src.models import Document
 
 
-def load_docx_documents(
-    directory: str
-) -> list[Document]:
+def load_docx_document(
+    file_path: Path,
+    document_id: UUID
+) -> Document:
 
-    documents: list[Document] = []
+    doc = DocxDocument(file_path)
 
-    data_path = Path(directory)
+    text = "\n".join(
+        paragraph.text
+        for paragraph in doc.paragraphs
+    )
 
-    for file in data_path.glob("*.docx"):
-
-        doc = DocxDocument(file)
-
-        text = "\n".join(
-            paragraph.text
-            for paragraph in doc.paragraphs
-        )
-
-        documents.append(
-            Document(
-                document_id=uuid4(),
-                filename=file.name,
-                content=text
-            )
-        )
-
-    return documents
+    return Document(
+        document_id=document_id,
+        filename=file_path.name,
+        content=text
+    )

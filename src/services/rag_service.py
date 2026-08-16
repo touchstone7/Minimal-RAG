@@ -1,4 +1,5 @@
 from pathlib import Path
+from uuid import uuid4
 
 from fastapi import UploadFile
 
@@ -147,15 +148,24 @@ class RagService:
         #
         # Upload one new document
         #       ↓
-        # Save to data/
+        # Generate unique document ID
+        #       ↓
+        # Save file to data/
         #       ↓
         # Load ONLY that document
+        #       ↓
+        # Attach document ID
         #       ↓
         # Chunk ONLY that document
         #       ↓
         # Embed ONLY that document
         #       ↓
-        # Add chunks to existing Chroma collection
+        # Add chunks to existing collection
+        #
+        # The document ID is independent of the filename.
+        #
+        # Therefore two different uploads named "paper.pdf"
+        # can coexist logically in the vector database.
         # ==========================================================
 
         # ==========================================================
@@ -192,7 +202,13 @@ class RagService:
             )
 
         # ==========================================================
-        # STEP 2: Save file into data/
+        # STEP 2: Generate a unique document ID
+        # ==========================================================
+
+        document_id = uuid4()
+
+        # ==========================================================
+        # STEP 3: Save file into data/
         # ==========================================================
 
         data_directory = Path(
@@ -218,7 +234,26 @@ class RagService:
             )
 
         # ==========================================================
-        # STEP 3: Load ONLY the uploaded document
+        # STEP 4: Load ONLY the uploaded document
+        # ==========================================================
+        #
+        # The loader creates a Document object containing the
+        # document content and filename.
+        #
+        # We explicitly replace its generated ID with the ID
+        # belonging to THIS upload.
+        #
+        # This keeps the ingestion operation deterministic:
+        #
+        # upload
+        #   ↓
+        # document_id
+        #   ↓
+        # chunks
+        #   ↓
+        # chunk IDs
+        #
+        # Filename is metadata, not identity.
         # ==========================================================
 
         documents = load_documents(
@@ -237,8 +272,12 @@ class RagService:
                 f"Could not load uploaded document: {filename}"
             )
 
+        document = uploaded_document[0]
+
+        document.document_id = document_id
+
         # ==========================================================
-        # STEP 4: Chunk ONLY this document
+        # STEP 5: Chunk ONLY this document
         # ==========================================================
 
         chunker = get_chunker(
@@ -246,7 +285,7 @@ class RagService:
         )
 
         chunks = chunker.chunk(
-            uploaded_document
+            [document]
         )
 
         chunks_added = len(chunks)
@@ -258,7 +297,7 @@ class RagService:
             )
 
         # ==========================================================
-        # STEP 5: Generate embeddings
+        # STEP 6: Generate embeddings
         # ==========================================================
 
         embedded_chunks = embed_chunks(
@@ -266,7 +305,7 @@ class RagService:
         )
 
         # ==========================================================
-        # STEP 6: Add ONLY new chunks to existing collection
+        # STEP 7: Add ONLY new chunks to existing collection
         # ==========================================================
 
         index_chunks(
@@ -275,7 +314,7 @@ class RagService:
         )
 
         # ==========================================================
-        # STEP 7: Get updated collection size
+        # STEP 8: Get updated collection size
         # ==========================================================
 
         total_chunks = self.collection.count()
@@ -286,12 +325,18 @@ class RagService:
         )
 
         print(
+            f"Document ID: "
+            f"{document_id}"
+        )
+
+        print(
             f"Collection now contains "
             f"{total_chunks} chunk(s)\n"
         )
 
         return {
             "status": "success",
+            "document_id": str(document_id),
             "filename": filename,
             "chunks_added": chunks_added,
             "total_chunks": total_chunks,

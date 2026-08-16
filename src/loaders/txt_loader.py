@@ -1,35 +1,18 @@
 from pathlib import Path
-from uuid import uuid4
+from uuid import UUID
 
 from src.models import Document
 
 
-def load_txt_documents(directory: str) -> list[Document]:
-    """
-    Load every .txt file inside a directory.
+def load_txt_document(
+    file_path: Path,
+    document_id: UUID
+) -> Document:
 
-    Each loaded document receives a globally unique document ID.
-    """
-
-    documents: list[Document] = []
-
-    data_path = Path(directory)
-
-    if not data_path.exists():
-        raise FileNotFoundError(
-            f"Directory '{directory}' does not exist."
+    return Document(
+        document_id=document_id,
+        filename=file_path.name,
+        content=file_path.read_text(
+            encoding="utf-8"
         )
-
-    for file in data_path.glob("*.txt"):
-
-        documents.append(
-            Document(
-                document_id=uuid4(),
-                filename=file.name,
-                content=file.read_text(
-                    encoding="utf-8"
-                )
-            )
-        )
-
-    return documents
+    )
