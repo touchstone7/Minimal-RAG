@@ -5,7 +5,10 @@ from fastapi import UploadFile
 
 from src.config import *
 
-from src.loaders.loader_factory import load_documents
+from src.loaders.loader_factory import (
+    load_document
+)
+
 from src.chunkers.chunker_factory import get_chunker
 
 from src.embeddings.embeddings_service import embed_chunks
@@ -14,6 +17,7 @@ from src.vectordb.chroma_service import (
     create_collection,
     index_chunks,
     show_collection_info,
+    inspect_collection
 )
 
 from src.retrieval.retriever import retrieve
@@ -62,82 +66,6 @@ class RagService:
         )
 
 
-    def ingest(self):
-
-        # ==========================================================
-        # FULL INGESTION
-        #
-        # Loads every supported document currently present inside
-        # DATA_DIRECTORY.
-        #
-        # Used for initial population / rebuilding of the knowledge
-        # base.
-        # ==========================================================
-
-        # ----------------------------
-        # Step 1: Load documents
-        # ----------------------------
-
-        documents = load_documents(
-            DATA_DIRECTORY
-        )
-
-        # ----------------------------
-        # Step 2: Chunk documents
-        # ----------------------------
-
-        chunker = get_chunker(
-            CHUNKING_METHOD
-        )
-
-        chunks = chunker.chunk(
-            documents
-        )
-
-        print(
-            f"\nCreated {len(chunks)} chunk(s)\n"
-        )
-
-        if not chunks:
-
-            return {
-                "status": "success",
-                "chunks_created": 0,
-                "total_chunks": self.collection.count(),
-            }
-
-        # ----------------------------
-        # Step 3: Generate embeddings
-        # ----------------------------
-
-        embedded_chunks = embed_chunks(
-            chunks
-        )
-
-        # ----------------------------
-        # Step 4: Store embeddings
-        # ----------------------------
-
-        index_chunks(
-            self.collection,
-            embedded_chunks
-        )
-
-        # ----------------------------
-        # Step 5: Verify storage
-        # ----------------------------
-
-        show_collection_info(
-            self.collection
-        )
-
-        return {
-            "status": "success",
-            "chunks_created": len(chunks),
-            "total_chunks": self.collection.count(),
-        }
-
-
     async def ingest_file(
         self,
         file: UploadFile
@@ -146,27 +74,28 @@ class RagService:
         # ==========================================================
         # INCREMENTAL FILE INGESTION
         #
-        # Upload one new document
+        # Upload one document
         #       ↓
         # Generate unique document ID
         #       ↓
-        # Save file to data/
+        # Save file
         #       ↓
-        # Load ONLY that document
+        # Load ONLY that file
         #       ↓
-        # Attach document ID
+        # Chunk
         #       ↓
-        # Chunk ONLY that document
+        # Embed
         #       ↓
-        # Embed ONLY that document
-        #       ↓
-        # Add chunks to existing collection
+        # Store in vector database
         #
-        # The document ID is independent of the filename.
+        # Filename is metadata.
+        #
+        # document_id is the identity of the uploaded document.
         #
         # Therefore two different uploads named "paper.pdf"
-        # can coexist logically in the vector database.
+        # can coexist as separate documents.
         # ==========================================================
+
 
         # ==========================================================
         # STEP 1: Validate filename
@@ -178,13 +107,16 @@ class RagService:
                 "Uploaded file must have a filename."
             )
 
+
         filename = Path(
             file.filename
         ).name
 
+
         extension = Path(
             filename
         ).suffix.lower()
+
 
         supported_extensions = {
             ".txt",
@@ -192,6 +124,7 @@ class RagService:
             ".pdf",
             ".docx",
         }
+
 
         if extension not in supported_extensions:
 
@@ -201,14 +134,16 @@ class RagService:
                 f"{', '.join(sorted(supported_extensions))}"
             )
 
+
         # ==========================================================
-        # STEP 2: Generate a unique document ID
+        # STEP 2: Generate unique document ID
         # ==========================================================
 
         document_id = uuid4()
 
+
         # ==========================================================
-        # STEP 3: Save file into data/
+        # STEP 3: Save uploaded file
         # ==========================================================
 
         data_directory = Path(
@@ -220,9 +155,12 @@ class RagService:
             exist_ok=True
         )
 
+
         file_path = data_directory / filename
 
+
         contents = await file.read()
+
 
         with open(
             file_path,
@@ -233,68 +171,54 @@ class RagService:
                 contents
             )
 
+
         # ==========================================================
-        # STEP 4: Load ONLY the uploaded document
-        # ==========================================================
+        # STEP 4: Load ONLY the uploaded file
         #
-        # The loader creates a Document object containing the
-        # document content and filename.
+        # The document ID generated above is passed directly into
+        # the loader.
         #
-        # We explicitly replace its generated ID with the ID
-        # belonging to THIS upload.
+        # The loader creates the Document using this exact ID.
         #
-        # This keeps the ingestion operation deterministic:
-        #
-        # upload
-        #   ↓
-        # document_id
-        #   ↓
-        # chunks
-        #   ↓
-        # chunk IDs
-        #
-        # Filename is metadata, not identity.
+        # No second UUID is generated.
         # ==========================================================
 
-        documents = load_documents(
-            DATA_DIRECTORY
+        document = load_document(
+            file_path=file_path,
+            document_id=document_id
         )
 
-        uploaded_document = [
-            document
-            for document in documents
-            if document.filename == filename
-        ]
 
-        if not uploaded_document:
+        if document is None:
 
             raise ValueError(
                 f"Could not load uploaded document: {filename}"
             )
 
-        document = uploaded_document[0]
-
-        document.document_id = document_id
 
         # ==========================================================
-        # STEP 5: Chunk ONLY this document
+        # STEP 5: Chunk the document
         # ==========================================================
 
         chunker = get_chunker(
             CHUNKING_METHOD
         )
 
+
         chunks = chunker.chunk(
             [document]
         )
 
+
         chunks_added = len(chunks)
+
 
         if chunks_added == 0:
 
             raise ValueError(
                 f"No chunks were created from {filename}."
             )
+
 
         # ==========================================================
         # STEP 6: Generate embeddings
@@ -304,8 +228,9 @@ class RagService:
             chunks
         )
 
+
         # ==========================================================
-        # STEP 7: Add ONLY new chunks to existing collection
+        # STEP 7: Store chunks in vector database
         # ==========================================================
 
         index_chunks(
@@ -313,26 +238,35 @@ class RagService:
             embedded_chunks
         )
 
+        # inspect_collection(
+        #     self.collection
+        # )
+
+
         # ==========================================================
         # STEP 8: Get updated collection size
         # ==========================================================
 
         total_chunks = self.collection.count()
 
+
         print(
             f"\nAdded {chunks_added} chunk(s) "
             f"from {filename}"
         )
+
 
         print(
             f"Document ID: "
             f"{document_id}"
         )
 
+
         print(
             f"Collection now contains "
             f"{total_chunks} chunk(s)\n"
         )
+
 
         return {
             "status": "success",
@@ -362,6 +296,7 @@ class RagService:
         # Final Answer
         # ==========================================================
 
+
         # ----------------------------------------------------------
         # Safety check
         # ----------------------------------------------------------
@@ -373,27 +308,30 @@ class RagService:
                 "Ingest at least one document before querying."
             )
 
-        # ----------------------------
+
+        # ----------------------------------------------------------
         # Step 1: Retrieve relevant chunks
-        # ----------------------------
+        # ----------------------------------------------------------
 
         retrieved_chunks = retrieve(
             collection=self.collection,
             question=question,
         )
 
-        # ----------------------------
+
+        # ----------------------------------------------------------
         # Step 2: Build the LLM prompt
-        # ----------------------------
+        # ----------------------------------------------------------
 
         prompt = build_prompt(
             question=question,
             retrieved_chunks=retrieved_chunks,
         )
 
-        # ----------------------------
+
+        # ----------------------------------------------------------
         # Step 3: Generate final answer
-        # ----------------------------
+        # ----------------------------------------------------------
 
         return self.llm_provider.generate(
             prompt
