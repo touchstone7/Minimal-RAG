@@ -24,3 +24,18 @@ class EmbeddedChunk:
     chunk_index: int
     text: str
     embedding: list[float]
+
+@dataclass
+class RetrievedChunk:
+    document_id: UUID
+    filename: str
+    chunk_index: int
+    text: str
+
+    score: float
+    rank: int
+
+    vector_store: str
+    collection_name: str
+
+    point_id: str
