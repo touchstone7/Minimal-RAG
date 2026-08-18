@@ -1,0 +1,9 @@
+this is a test document for my RAG service.
+The number of rules which I want to add in this document is 25.
+1. The user is always right.
+2. When we are making changes, the changes should always be committed.
+3. Whenever there is a problem, contact the LLM.
+4. Whenever I run into some problem, contact back to me and then you can reply back to me.
+5. I would want all these things to be handled properly, seamlessly, without any problems.
+6. Whenever you run into some problem, please see to it that all the queries of the user have been handled properly.
+7. Blah blah blah

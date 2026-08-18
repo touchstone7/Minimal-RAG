@@ -1,11 +1,20 @@
 import ollama
 
-from src.models import Chunk, EmbeddedChunk
+from src.config import EMBEDDING_MODEL
 
+from src.models import (
+    Chunk,
+    EmbeddedChunk,
+)
+
+
+# =========================================================
+# EMBED CHUNKS
+# =========================================================
 
 def embed_chunks(
     chunks: list[Chunk],
-    model: str = "nomic-embed-text"
+    model: str = EMBEDDING_MODEL
 ) -> list[EmbeddedChunk]:
     """
     Generate embeddings for all chunks.
@@ -25,11 +34,35 @@ def embed_chunks(
         embedded_chunks.append(
             EmbeddedChunk(
                 document_id=chunk.document_id,
+
                 filename=chunk.filename,
+
                 chunk_index=chunk.chunk_index,
+
                 text=chunk.text,
+
                 embedding=embedding
             )
         )
 
     return embedded_chunks
+
+
+# =========================================================
+# EMBED QUERY
+# =========================================================
+
+def embed_query(
+    question: str,
+    model: str = EMBEDDING_MODEL
+) -> list[float]:
+    """
+    Generate an embedding for a user query.
+    """
+
+    response = ollama.embed(
+        model=model,
+        input=question
+    )
+
+    return response["embeddings"][0]

@@ -1,22 +1,25 @@
-import ollama
+from src.config import TOP_K
+
+from src.embeddings.embeddings_service import (
+    embed_query
+)
+
+from src.models import RetrievedChunk
+
+from src.vectordb.vector_store import VectorStore
 
 
 def retrieve(
-    collection,
+    vector_store: VectorStore,
     question: str,
-    model: str = "nomic-embed-text",
-    top_k: int = 3
-):
-    response = ollama.embed(
-        model=model,
-        input=question
+    top_k: int = TOP_K,
+) -> list[RetrievedChunk]:
+
+    query_embedding = embed_query(
+        question
     )
 
-    question_embedding = response["embeddings"][0]
-
-    results = collection.query(
-        query_embeddings=[question_embedding],
-        n_results=top_k
+    return vector_store.search(
+        query_embedding=query_embedding,
+        top_k=top_k,
     )
-
-    return results

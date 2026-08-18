@@ -1,16 +1,27 @@
-def build_prompt(question: str, retrieved_chunks) -> str:
+from src.models import RetrievedChunk
+
+
+def build_prompt(
+    question: str,
+    retrieved_chunks: list[RetrievedChunk]
+) -> str:
     """
     Build the final prompt sent to the language model.
     """
 
     context = ""
 
-    documents = retrieved_chunks["documents"][0]
+    for index, chunk in enumerate(
+        retrieved_chunks,
+        start=1
+    ):
 
-    for index, chunk in enumerate(documents, start=1):
+        context += (
+            f"Context {index}:\n"
+        )
 
-        context += f"Context {index}:\n"
-        context += chunk
+        context += chunk.text
+
         context += "\n\n"
 
     prompt = f"""
